@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
@@ -27,7 +29,7 @@ def capture_camera_image(camera_id=0, width=224, height=224):
 
 def main():
     # Connect to server on port 8000
-    policy = WebsocketClientPolicy(host="165.227.47.97", port=8000)
+    policy = WebsocketClientPolicy(host=os.getenv("OPENPI_IP"), port=8000)
 
     # Get server metadata
     metadata = policy.get_server_metadata()
