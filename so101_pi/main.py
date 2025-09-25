@@ -1,31 +1,8 @@
 import os
-
-import cv2
+import time
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-
-def capture_camera_image(camera_id=0, width=224, height=224):
-    """Capture an image from the camera and resize it to the expected format."""
-    cap = cv2.VideoCapture(camera_id)
-    if not cap.isOpened():
-        raise RuntimeError(f"Cannot open camera {camera_id}")
-
-    ret, frame = cap.read()
-    cap.release()
-
-    if not ret:
-        raise RuntimeError("Failed to capture image from camera")
-
-    # Resize to expected dimensions
-    frame = cv2.resize(frame, (width, height))
-
-    # Convert from BGR to RGB (OpenCV uses BGR by default)
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-    # Convert to format expected by the model: (C, H, W) uint8
-    frame = np.transpose(frame, (2, 0, 1))
-
-    return frame.astype(np.uint8)
+from so101_pi.utils.video_handler import VideoHandler
 
 def main():
     # Connect to server on port 8000
@@ -35,15 +12,28 @@ def main():
     metadata = policy.get_server_metadata()
     print(f"Connected to server. Metadata: {metadata}")
 
-    # Capture image from camera 0
+    # Initialize video handler
+    video_handler = VideoHandler(camera_index=0, image_height=224, image_width=224)
+
+    # Capture image from camera
     try:
-        camera_image = capture_camera_image(camera_id=0)
-        print(f"Captured image shape: {camera_image.shape}")
+        video_handler.start_continuous_capture()
+        time.sleep(2)  # Wait for frames to be captured
+
+        frames = video_handler.get_frames(num_frames=1)
+        if frames:
+            camera_image = frames[0]
+            print(f"Captured image shape: {camera_image.shape}")
+
+        else:
+            raise RuntimeError("No frames captured")
     except Exception as e:
         print(f"Camera capture failed: {e}")
         # Fallback to random image
         camera_image = np.random.randint(256, size=(3, 224, 224), dtype=np.uint8)
         print("Using random image as fallback")
+    finally:
+        video_handler.stop_continuous_capture()
 
     # Create observation in the expected format
     obs = {
