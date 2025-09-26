@@ -1,0 +1,74 @@
+import numpy as np
+import logging
+from so101_pi.utils.configurations import RobotConfiguration
+from lerobot.robots.so101_follower import SO101Follower
+from lerobot.robots.so101_follower.config_so101_follower import SO101FollowerConfig
+
+logger = logging.getLogger(__name__)
+
+
+class RobotWrapper:
+    def __init__(self, config: RobotConfiguration):
+        self.config = config
+        robot_config = SO101FollowerConfig(port=self.config.port)
+
+        self.robot = SO101Follower(robot_config)
+        self.is_connected = False
+
+    def connect(self, calibrate: bool = True) -> None:
+        """Connect to the robot hardware."""
+        if self.is_connected:
+            logger.warning("Robot already connected")
+            return
+
+        self.robot.connect(calibrate=calibrate)
+        self.is_connected = True
+        logger.info("Successfully connected to SO101 robot")
+
+    def get_observation(self) -> dict:
+        """Get the current state observation from the robot."""
+        if not self.is_connected:
+            logger.warning("Robot not connected, returning empty observation")
+            return {}
+
+        return self.robot.get_observation()
+
+    def apply_action(self, action: np.ndarray) -> None:
+        """Execute an action from the environment.
+
+        Args:
+            action: A numpy array of shape (6,) with values in range [-1, 1]
+                   representing the desired position for each of the 6 motors.
+        """
+        if not isinstance(action, np.ndarray):
+            raise ValueError("Action must be a numpy array")
+
+        if action.shape != (6,):
+            raise ValueError(f"Action must have shape (6,), got {action.shape}")
+
+        if not self.is_connected:
+            logger.warning("Robot not connected, skipping action")
+            return
+
+        # Convert action array to motor position dictionary
+        goal_positions = {}
+
+        for i, joint in enumerate(self.config.joints):
+            motor_value = action[i]
+            clipped_value = np.clip(motor_value, joint.min_limit, joint.max_limit)
+            goal_positions[f"{joint.name}.pos"] = float(clipped_value)
+
+        try:
+            self.robot.send_action(goal_positions)
+            logger.debug(f"Sent action: {goal_positions}")
+        except Exception as e:
+            logger.error(f"Failed to send motor commands: {e}")
+
+    def disconnect(self) -> None:
+        """Disconnect from the robot hardware."""
+        if self.is_connected:
+            self.robot.disconnect()
+            self.is_connected = False
+            logger.info("Disconnected from robot hardware")
+        else:
+            logger.warning("Attempted to disconnect when no robot was connected")
