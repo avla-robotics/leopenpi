@@ -3,7 +3,7 @@ name = "so101-pi"
 version = "0.1.0"
 description = ""
 requires-python = ">=3.11,<3.12"
-dependencies = ["openpi-client", "opencv-python"]
+dependencies = ["openpi-client", "opencv-python", "lerobot-wrapper"]
 
 [project.optional-dependencies]
 dev = []
@@ -21,4 +21,5 @@ override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
 
 [tool.uv.sources]
 openpi-client = { path = "packages/openpi-client", editable = true }
+lerobot-wrapper = { git = "git+ssh://git@github.com/Skylerwiernik/lerobot-wrapper.git" }
 
