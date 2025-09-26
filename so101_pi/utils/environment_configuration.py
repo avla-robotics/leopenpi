@@ -8,5 +8,6 @@ class EnvironmentConfiguration:
     server_ip: str
     server_port: int = 8000
     max_steps: int = 1000
+    log_level: str = "INFO"
 
 
