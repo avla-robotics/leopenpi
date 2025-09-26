@@ -1,10 +1,10 @@
 from draccus import parse
-from so101_pi.utils.runtime_configuration import RuntimeConfiguration
+from so101_pi.utils.environment_configuration import EnvironmentConfiguration
 
-def main(config: RuntimeConfiguration):
-    print(config)
+def main(environment_configuration: EnvironmentConfiguration):
+    print(environment_configuration)
 
 
 if __name__ == "__main__":
-    config = parse(RuntimeConfiguration)
+    config = parse(EnvironmentConfiguration)
     main(config)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass(frozen=True)
-class RuntimeConfiguration:
+class EnvironmentConfiguration:
     prompt: str
     cameras: dict[str, int]
     robot_port: int
