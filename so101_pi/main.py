@@ -15,25 +15,7 @@ def main():
     # Initialize video handler
     video_handler = VideoHandler(camera_index=0, image_height=224, image_width=224)
 
-    # Capture image from camera
-    try:
-        video_handler.start_continuous_capture()
-        time.sleep(2)  # Wait for frames to be captured
-
-        frames = video_handler.get_frames(num_frames=1)
-        if frames:
-            camera_image = frames[0]
-            print(f"Captured image shape: {camera_image.shape}")
-
-        else:
-            raise RuntimeError("No frames captured")
-    except Exception as e:
-        print(f"Camera capture failed: {e}")
-        # Fallback to random image
-        camera_image = np.random.randint(256, size=(3, 224, 224), dtype=np.uint8)
-        print("Using random image as fallback")
-    finally:
-        video_handler.stop_continuous_capture()
+    camera_image = video_handler.capture_frame()
 
     # Create observation in the expected format
     obs = {
