@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from logging import Logger
 
 
 @dataclass(frozen=True)
@@ -12,7 +12,7 @@ class Joint:
 @dataclass(frozen=True)
 class RobotConfiguration:
     port: str
-    joints: List[Joint] = None
+    joints: list[Joint] = None
 
     def __post_init__(self):
         if self.joints is None:
@@ -36,5 +36,8 @@ class EnvironmentConfiguration:
     server_port: int = 8000
     max_steps: int = 1000
     log_level: str = "INFO"
+    logger: Logger = None
 
-
+    def __post_init__(self):
+        if self.logger is None:
+            object.__setattr__(self, 'logger', Logger(__name__, self.log_level))

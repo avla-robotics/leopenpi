@@ -1,11 +1,11 @@
-import logging
+from logging import Logger
+
 from openpi_client.runtime.subscriber import Subscriber
 
 
 class LoggingSubscriber(Subscriber):
-    def __init__(self, log_level: str = "INFO"):
-        logging.basicConfig(level=log_level.upper())
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, logger: Logger):
+        self.logger = logger
 
     def on_episode_start(self) -> None:
         self.logger.info("Episode started")

@@ -8,13 +8,13 @@ from utils.robot_wrapper import RobotWrapper
 from robot_environment import RobotEnvironment
 
 def main(config: EnvironmentConfiguration):
-    robot = RobotWrapper(config.robot)
+    robot = RobotWrapper(config.robot, config.logger)
     robot.connect()
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     policy = WebsocketClientPolicy(host=config.server_ip, port=config.server_port)
     agent = PolicyAgent(policy)
-    runtime = Runtime(environment, agent, [LoggingSubscriber(config.log_level)])
+    runtime = Runtime(environment, agent, [LoggingSubscriber(config.logger)])
 
     try:
         runtime.run()
