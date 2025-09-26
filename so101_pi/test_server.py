@@ -4,7 +4,7 @@ import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
 from so101_pi.utils.video_handler import VideoHandler
 
-def main():
+def test_server():
     # Connect to server on port 8000
     policy = WebsocketClientPolicy(host=os.getenv("OPENPI_IP"), port=8000)
 
@@ -31,4 +31,4 @@ def main():
     print(f"Inference result: {result}")
 
 if __name__ == "__main__":
-    main()
+    test_server()
