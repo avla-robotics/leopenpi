@@ -5,7 +5,8 @@ description = "SO101 running for pi0 and pi0.5"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "openpi-client"
+    "openpi-client",
+    "feetech-servo-sdk"
 ]
 
 [project.scripts]
