@@ -33,13 +33,19 @@ class RobotEnvironment(Environment):
         }
 
     def apply_action(self, action: dict) -> None:
-        # TODO: Send action to robot
-        print("Received action:", action)
+        act = self._trim(action["actions"], 6)
+        self.robot.apply_action(act)
 
     @staticmethod
-    def _pad(observation: np.ndarray, size) -> np.ndarray:
+    def _pad(observation: np.ndarray, size: int) -> np.ndarray:
         if observation.size >= size:
             return observation[:size]
         padded = np.zeros(size)
         padded[:observation.size] = observation.flatten()
         return padded
+
+    @staticmethod
+    def _trim(observation: np.ndarray, size: int) -> np.ndarray:
+        if observation.size <= size:
+            return observation
+        return observation[:size]
