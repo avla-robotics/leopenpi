@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from so101_pi.utils.configurations import RobotConfiguration
+from .configurations import RobotConfiguration
 from lerobot.robots.so101_follower import SO101Follower
 from lerobot.robots.so101_follower.config_so101_follower import SO101FollowerConfig
 

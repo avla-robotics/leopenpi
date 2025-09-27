@@ -1,8 +1,7 @@
 import os
-import time
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-from so101_pi.utils.video_handler import VideoHandler
+from src import VideoHandler
 
 def test_server():
     # Connect to server on port 8000
