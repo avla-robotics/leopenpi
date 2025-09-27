@@ -1,4 +1,6 @@
 from draccus import parse
+
+from openpi_client.action_chunk_broker import ActionChunkBroker
 from openpi_client.runtime.agents.policy_agent import PolicyAgent
 from openpi_client.runtime.runtime import Runtime
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
@@ -11,7 +13,8 @@ def main(config: EnvironmentConfiguration):
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     policy = WebsocketClientPolicy(host=config.server_ip, port=config.server_port)
-    agent = PolicyAgent(policy)
+    broker = ActionChunkBroker(policy, action_horizon=10)
+    agent = PolicyAgent(broker)
     runtime = Runtime(environment, agent, [LoggingSubscriber(config.logger)])
 
     try:

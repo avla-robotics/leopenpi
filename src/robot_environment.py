@@ -1,3 +1,5 @@
+import numpy as np
+
 from openpi_client.runtime.environment import Environment
 from utils.robot_wrapper import RobotWrapper
 from utils.video_handler import VideoHandler
@@ -26,10 +28,18 @@ class RobotEnvironment(Environment):
         return {
             "prompt": self.prompt,
             "observation/gripper_position": self.robot.get_gripper_observation(),
-            "observation/joint_position": self.robot.get_joint_observation(),
+            "observation/joint_position": self._pad(self.robot.get_joint_observation(), 7),
             **{f"observation/{name}": handler.capture_frame() for name, handler in self._video_handlers.items()},
         }
 
     def apply_action(self, action: dict) -> None:
         # TODO: Send action to robot
         print("Received action:", action)
+
+    @staticmethod
+    def _pad(observation: np.ndarray, size) -> np.ndarray:
+        if observation.size >= size:
+            return observation[:size]
+        padded = np.zeros(size)
+        padded[:observation.size] = observation.flatten()
+        return padded
