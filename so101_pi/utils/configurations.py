@@ -13,6 +13,7 @@ class Joint:
 class RobotConfiguration:
     port: str
     joints: list[Joint] = None
+    gripper: Joint = None
 
     def __post_init__(self):
         if self.joints is None:
@@ -24,8 +25,8 @@ class RobotConfiguration:
                 Joint('elbow_flex', -1.0, 1.0),
                 Joint('wrist_flex', -1.0, 1.0),
                 Joint('wrist_roll', -1.0, 1.0),
-                Joint('gripper', 0.0, 1.0),  # Gripper ranges from 0 (open) to 1 (closed)
             ])
+            object.__setattr__(self, 'gripper', Joint('gripper', -1.0, 1.0))
 
 @dataclass(frozen=True)
 class EnvironmentConfiguration:
