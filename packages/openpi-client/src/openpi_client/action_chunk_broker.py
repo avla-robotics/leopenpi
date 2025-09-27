@@ -1,7 +1,6 @@
 from typing import Dict
 
 import numpy as np
-import tree
 from typing_extensions import override
 
 from openpi_client import base_policy as _base_policy
@@ -34,8 +33,8 @@ class ActionChunkBroker(_base_policy.BasePolicy):
                 return x[self._cur_step, ...]
             else:
                 return x
-
-        results = tree.map_structure(slicer, self._last_results)
+        # Fix: rewrote to avoid tree dependency
+        results = {k: slicer(v) for k, v in self._last_results.items()}
         self._cur_step += 1
 
         if self._cur_step >= self._action_horizon:
