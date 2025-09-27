@@ -3,7 +3,10 @@ name = "so101-pi"
 version = "0.1.0"
 description = ""
 requires-python = ">=3.11,<3.12"
-dependencies = ["openpi-client", "opencv-python", "feetech-servo-sdk", "lerobot"]
+dependencies = ["openpi-client", "opencv-python", "feetech-servo-sdk", "lerobot", "pyyaml"]
+
+[project.scripts]
+calibrate = "scripts.calibrate:main"
 
 [project.optional-dependencies]
 dev = []
@@ -14,10 +17,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["so101_pi*"]
+include = ["so101_pi*", "scripts*"]
 
 [tool.uv]
 override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
 
 [tool.uv.sources]
 openpi-client = { path = "packages/openpi-client", editable = true }
+scripts = { path = "scripts", editable = true}
