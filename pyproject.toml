@@ -3,7 +3,7 @@ name = "so101-pi"
 version = "0.1.0"
 description = ""
 requires-python = ">=3.11,<3.12"
-dependencies = ["openpi-client", "opencv-python", "lerobot"]
+dependencies = ["openpi-client", "opencv-python", "feetech-servo-sdk", "lerobot"]
 
 [project.optional-dependencies]
 dev = []
