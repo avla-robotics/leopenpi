@@ -9,7 +9,7 @@ class RobotEnvironment(Environment):
     def __init__(self, prompt: str, robot: RobotWrapper, cameras: dict[str, int]):
         self.robot = robot
         self._video_handlers = {name: VideoHandler(index) for name, index in cameras.items()}
-        self._start_position = robot.get_joint_observation()
+        self._start_position = np.concatenate((robot.get_joint_observation(), robot.get_gripper_observation()))
         self._prompt = prompt
 
     @property
@@ -17,8 +17,7 @@ class RobotEnvironment(Environment):
         return self._prompt
 
     def reset(self) -> None:
-        # TODO
-        pass
+        self.robot.apply_action(self._start_position)
 
     def is_episode_complete(self) -> bool:
         # TODO: Implement logic for concluding episode
