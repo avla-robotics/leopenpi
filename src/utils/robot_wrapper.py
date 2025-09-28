@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from .configurations import RobotConfiguration
+from .configurations import RobotConfiguration, Joint
 from lerobot.robots.so101_follower import SO101Follower
 from lerobot.robots.so101_follower.config_so101_follower import SO101FollowerConfig
 
@@ -23,7 +23,8 @@ class RobotWrapper:
         self.is_connected = True
         self.logger.info("Successfully connected to SO101 robot")
 
-    def get_joint_observation(self) -> np.ndarray:
+
+    def _get_observation(self, joints: list[Joint]):
         """Get the current joint observation from the robot."""
         if not self.is_connected:
             raise RuntimeError("Robot not connected")
@@ -31,24 +32,20 @@ class RobotWrapper:
         obs = self.robot.get_observation()
         processed_obs = np.zeros(shape=(5,), dtype=np.float32)
         # Capture order from config
-        for i, joint in enumerate(self.config.joints):
+        for i, joint in enumerate(joints):
             joint_name = f"{joint.name}.pos"
             if joint_name not in obs:
                 raise ValueError(f"Could not find {joint_name} in robot observation from config value `{joint}`")
             processed_obs[i] = obs[joint_name]
         return processed_obs
 
+    def get_joint_observation(self) -> np.ndarray:
+        """Get the current joint observation from the robot."""
+        return self._get_observation(self.config.joints)
+
     def get_gripper_observation(self) -> np.ndarray:
         """Get the current gripper observation from the robot."""
-        if not self.is_connected:
-            raise RuntimeError("Robot not connected")
-
-        obs = self.robot.get_observation()
-        gripper_name = f"{self.config.gripper.name}.pos"
-        if gripper_name not in obs:
-            raise ValueError(f"Could not find {gripper_name} in robot observation from config value `{self.config.gripper.name}`")
-
-        return np.array([obs[gripper_name]], dtype=np.float32)
+        return self._get_observation([self.config.gripper])
 
     def apply_action(self, action: np.ndarray) -> None:
         """Execute an action from the environment.
@@ -68,10 +65,7 @@ class RobotWrapper:
             self.logger.warning("Robot not connected, skipping action")
             return
 
-        current_positions = np.concatenate([
-            self.get_joint_observation(),
-            self.get_gripper_observation(),
-        ])
+        current_positions = self._get_observation(self.config.all_joints)
 
         goal_positions = {}
         for i, joint in enumerate(self.config.all_joints):
