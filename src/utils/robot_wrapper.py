@@ -36,7 +36,7 @@ class RobotWrapper:
             if joint_name not in obs:
                 raise ValueError(f"Could not find {joint_name} in robot observation from config value `{joint}`")
             processed_obs[i] = obs[joint_name]
-
+        print(processed_obs)
         return processed_obs
 
     def get_gripper_observation(self) -> np.ndarray:
@@ -49,14 +49,15 @@ class RobotWrapper:
         if gripper_name not in obs:
             raise ValueError(f"Could not find {gripper_name} in robot observation from config value `{self.config.gripper.name}`")
 
-        return np.array(obs[gripper_name], dtype=np.float32)
+        return np.array([obs[gripper_name]], dtype=np.float32)
 
     def apply_action(self, action: np.ndarray) -> None:
         """Execute an action from the environment.
 
         Args:
             action: A numpy array of shape (6,) with values in range [-1, 1]
-                   representing the desired position for each of the 6 motors.
+                   representing the delta movement for each of the 6 motors.
+                   Each value represents how much to move from current position.
         """
         if not isinstance(action, np.ndarray):
             raise ValueError("Action must be a numpy array")
@@ -68,12 +69,25 @@ class RobotWrapper:
             self.logger.warning("Robot not connected, skipping action")
             return
 
-        # Convert action array to motor position dictionary
-        goal_positions = {}
+        current_positions = np.concatenate([
+            self.get_gripper_observation(),
+            self.get_joint_observation()
+        ])
 
-        for i, joint in enumerate(self.config.joints):
-            motor_value = action[i]
-            clipped_value = np.clip(motor_value, joint.min_limit, joint.max_limit)
+        goal_positions = {}
+        for i, joint in enumerate([self.config.gripper] + self.config.joints):
+            current_pos = current_positions[i]
+            action_val = action[i]
+
+            # Action range is -1 to 1, so total action range is 2
+            total_range = joint.max_limit - joint.min_limit
+            delta_movement = action_val * (total_range / 2.0)
+
+            # Calculate new position
+            new_position = current_pos + delta_movement
+
+            # Clamp to joint limits
+            clipped_value = np.clip(new_position, joint.min_limit, joint.max_limit)
             goal_positions[f"{joint.name}.pos"] = float(clipped_value)
 
         try:
