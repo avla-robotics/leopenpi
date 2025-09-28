@@ -44,7 +44,7 @@ class RobotEnvironment(Environment):
         if observation.size >= size:
             return observation[:size]
         padded = np.zeros(size)
-        padded[size-observation.size:] = observation.flatten()
+        padded[:observation.size] = observation.flatten()
         return padded
 
     @staticmethod
