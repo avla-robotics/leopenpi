@@ -1,8 +1,8 @@
 import numpy as np
 
 from openpi_client.runtime.environment import Environment
-from utils.robot_wrapper import RobotWrapper
-from utils.video_handler import VideoHandler
+from .utils.robot_wrapper import RobotWrapper
+from .utils.video_handler import VideoHandler
 
 
 class RobotEnvironment(Environment):

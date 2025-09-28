@@ -7,8 +7,8 @@ to move the robot through its full range of motion and recording the
 min/max positions for each joint.
 
 Usage:
-    python calibrate_joint_limits.py --robot-port /dev/ttyUSB0 --teleop-port /dev/ttyUSB1
-    python calibrate_joint_limits.py --config config.yaml  # Uses ports from config file
+    python calibrate.py --robot.port /dev/ttyUSB0 --teleop.port /dev/ttyUSB1
+    python calibrate.py --config config.yaml  # Uses ports from config file
     calibrate --config config.yaml  # If installed as package
 
 The script will:
@@ -17,21 +17,25 @@ The script will:
 3. Update min/max limits as joints move beyond current limits
 4. Save updated configuration or print results to console
 """
-
 import argparse
 import threading
 import time
 import signal
+import select
 import sys
 import yaml
 import json
 import logging
-from pathlib import Path
 
+from pathlib import Path
+from draccus import parse
 from lerobot.robots.so101_follower.config_so101_follower import SO101FollowerConfig
 from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderConfig
 from lerobot.robots import make_robot_from_config
 from lerobot.teleoperators import make_teleoperator_from_config
+
+sys.path.append(str(Path(__file__).parent.parent))
+from src import EnvironmentConfiguration
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -44,22 +48,19 @@ class JointLimitsCalibrator:
     Tracks joint positions during teleoperation and updates min/max limits.
     """
 
-    def __init__(self, robot_port: str = None, teleop_port: str = None, config_path: str = None):
-        self.config_path = config_path
+    def __init__(self, config: EnvironmentConfiguration):
+        self.config = config
 
-        # Load existing config if provided
-        self.config_data = self._load_config() if config_path else self._create_default_config()
+        # Reset limits
+        for joint in config.robot.joints:
+            joint.min_limit = 0
+            joint.max_limit = 0
+        self.config.robot.gripper.min_limit = 0
+        self.config.robot.gripper.max_limit = 0
 
-        # Get ports from config or arguments
-        self.robot_port = robot_port or self.config_data.get('robot', {}).get('port')
-        self.teleop_port = teleop_port or self.config_data.get('teleop', {}).get('port')
+        self.robot_port = config.robot.port
+        self.teleop_port = config.teleop.port
 
-        if not self.robot_port:
-            raise ValueError("Robot port must be provided via --robot-port or in config file")
-        if not self.teleop_port:
-            raise ValueError("Teleop port must be provided via --teleop-port or in config file")
-
-        # Teleoperation objects and thread
         self.teleop_thread = None
         self.teleop_running = False
         self.lerobot_robot = None
@@ -67,45 +68,8 @@ class JointLimitsCalibrator:
         self.current_observation = None
         self.observation_lock = threading.Lock()
 
-        # Track if any limits were updated
-        self.limits_updated = False
-
-        # Register signal handler for graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
-
-    def _load_config(self) -> dict:
-        """Load configuration from file."""
-        try:
-            with open(self.config_path, 'r') as f:
-                if self.config_path.endswith('.yaml') or self.config_path.endswith('.yml'):
-                    return yaml.safe_load(f)
-                elif self.config_path.endswith('.json'):
-                    return json.load(f)
-                else:
-                    raise ValueError("Config file must be .yaml, .yml, or .json")
-        except Exception as e:
-            logger.error(f"Failed to load config file {self.config_path}: {e}")
-            sys.exit(1)
-
-    def _create_default_config(self) -> dict:
-        """Create default configuration structure."""
-        return {
-            'robot': {
-                'joints': [
-                    {'name': 'shoulder_pan', 'min_limit': -1.0, 'max_limit': 1.0},
-                    {'name': 'shoulder_lift', 'min_limit': -1.0, 'max_limit': 1.0},
-                    {'name': 'elbow_flex', 'min_limit': -1.0, 'max_limit': 1.0},
-                    {'name': 'wrist_flex', 'min_limit': -1.0, 'max_limit': 1.0},
-                    {'name': 'wrist_roll', 'min_limit': -1.0, 'max_limit': 1.0},
-                ],
-                'gripper': {
-                    'name': 'gripper',
-                    'min_limit': -1.0,
-                    'max_limit': 1.0
-                }
-            }
-        }
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully."""
@@ -184,64 +148,12 @@ class JointLimitsCalibrator:
 
     def _update_limits(self, observation: dict):
         """Update joint limits based on current observation."""
-        # Update joint limits
-        for joint_config in self.config_data['robot']['joints']:
-            joint_name = joint_config['name']
-            joint_key = f"{joint_name}.pos"
-
+        for joint_config in self.config.robot.joints + [self.config.robot.gripper]:
+            joint_key = f"{joint_config.name}.pos"
             if joint_key in observation:
                 current_pos = observation[joint_key]
-
-                # Update min limit
-                if current_pos < joint_config['min_limit']:
-                    joint_config['min_limit'] = current_pos
-                    self.limits_updated = True
-
-                # Update max limit
-                if current_pos > joint_config['max_limit']:
-                    joint_config['max_limit'] = current_pos
-                    self.limits_updated = True
-
-        # Update gripper limits
-        gripper_config = self.config_data['robot']['gripper']
-        gripper_name = gripper_config['name']
-        gripper_key = f"{gripper_name}.pos"
-
-        if gripper_key in observation:
-            current_pos = observation[gripper_key]
-
-            # Update min limit
-            if current_pos < gripper_config['min_limit']:
-                gripper_config['min_limit'] = current_pos
-                self.limits_updated = True
-
-            # Update max limit
-            if current_pos > gripper_config['max_limit']:
-                gripper_config['max_limit'] = current_pos
-                self.limits_updated = True
-
-    def start_teleoperation(self) -> bool:
-        """Start the teleoperation in a background thread."""
-        try:
-            logger.info("Starting teleoperation...")
-
-            self.teleop_running = True
-            self.teleop_thread = threading.Thread(target=self._teleoperation_loop, daemon=True)
-            self.teleop_thread.start()
-
-            # Wait a moment for teleoperation to initialize
-            time.sleep(3.0)
-
-            if not self.teleop_running:
-                logger.error("Teleoperation failed to start")
-                return False
-
-            logger.info("Teleoperation started successfully")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to start teleoperation: {e}")
-            return False
+                joint_config.min_limit = min(joint_config.min_limit, current_pos)
+                joint_config.max_limit = max(joint_config.max_limit, current_pos)
 
     def stop_teleoperation(self):
         """Stop the teleoperation thread."""
@@ -269,40 +181,21 @@ class JointLimitsCalibrator:
             if self.current_observation is None:
                 return "No observation data available"
 
-            status_lines = []
-            status_lines.append("Current Joint Positions and Limits:")
-            status_lines.append("-" * 50)
+            status_lines = ["Current Joint Positions and Limits:", "-" * 50]
 
-            # Show joint status
-            for joint_config in self.config_data['robot']['joints']:
-                joint_name = joint_config['name']
-                joint_key = f"{joint_name}.pos"
+            # Combine joints and gripper into a single list
+            all_parts = self.config.robot.joints + [self.config.robot.gripper]
 
-                if joint_key in self.current_observation:
-                    current_pos = self.current_observation[joint_key]
-                    min_limit = joint_config['min_limit']
-                    max_limit = joint_config['max_limit']
+            # Collect status
+            for part in all_parts:
+                key = f"{part.name}.pos"
 
+                if key in self.current_observation:
+                    current_pos = self.current_observation[key]
                     status_lines.append(
-                        f"{joint_name:15}: {current_pos:8.4f} "
-                        f"(limits: {min_limit:8.4f} to {max_limit:8.4f})"
+                        f"{part.name:15}: {current_pos:8.4f} "
+                        f"(limits: {part.min_limit:8.4f} to {part.max_limit:8.4f})"
                     )
-
-            # Show gripper status
-            gripper_config = self.config_data['robot']['gripper']
-            gripper_name = gripper_config['name']
-            gripper_key = f"{gripper_name}.pos"
-
-            if gripper_key in self.current_observation:
-                current_pos = self.current_observation[gripper_key]
-                min_limit = gripper_config['min_limit']
-                max_limit = gripper_config['max_limit']
-
-                status_lines.append(
-                    f"{gripper_name:15}: {current_pos:8.4f} "
-                    f"(limits: {min_limit:8.4f} to {max_limit:8.4f})"
-                )
-
             return "\n".join(status_lines)
 
     def run_calibration(self):
@@ -310,44 +203,27 @@ class JointLimitsCalibrator:
         print("=" * 60)
         print("JOINT LIMITS CALIBRATION")
         print("=" * 60)
-        print()
-        print("This script will track joint positions during teleoperation")
-        print("and automatically update min/max limits as you move the robot.")
-        print()
-        print("Make sure:")
-        print("- Both robot and leader device are connected and powered on")
-        print("- The workspace is clear of obstacles")
-        print("- You have emergency stop readily available")
-        print()
-
         input("Press ENTER to start teleoperation...")
 
-        # Start teleoperation
-        if not self.start_teleoperation():
+        logger.info("Starting teleoperation...")
+
+        self.teleop_running = True
+        self.teleop_thread = threading.Thread(target=self._teleoperation_loop, daemon=True)
+        self.teleop_thread.start()
+
+
+        if not self.teleop_running:
             raise RuntimeError("Failed to start teleoperation")
 
-        try:
-            print()
-            print("Teleoperation is now active!")
-            print("Move the robot through its full range of motion.")
-            print("Joint limits will be updated automatically.")
-            print()
-            print("Press ENTER to stop calibration...")
+        logger.info("Teleoperation started successfully")
 
-            # Show status updates while running
-            last_status_time = 0
+        try:
+            print("Press ENTER to stop calibration...")
             while True:
                 try:
-                    # Show status every 2 seconds
-                    current_time = time.time()
-                    if current_time - last_status_time > 2.0:
-                        print("\r" + " " * 80 + "\r", end="")  # Clear line
-                        print(self.get_current_status())
-                        print("\nPress ENTER to stop calibration...")
-                        last_status_time = current_time
-
-                    # Check if user pressed enter (non-blocking)
-                    import select
+                    print("\r" + " " * 80 + "\r", end="")  # Clear line
+                    print(self.get_current_status())
+                    print("\nPress ENTER to stop calibration...")
                     if sys.stdin in select.select([sys.stdin], [], [], 0.1)[0]:
                         input()  # Consume the input
                         break
@@ -357,8 +233,7 @@ class JointLimitsCalibrator:
                 except KeyboardInterrupt:
                     break
                 except Exception as e:
-                    logger.error(f"Error during calibration: {e}")
-                    time.sleep(0.5)
+                    raise e
 
         finally:
             self.stop_teleoperation()
@@ -367,35 +242,33 @@ class JointLimitsCalibrator:
         print("CALIBRATION COMPLETE!")
         print("=" * 60)
 
-        if self.limits_updated:
-            print("\nJoint limits were updated during calibration.")
+    def _config_to_dict(self, obj):
+        """Recursively convert configuration objects to dictionaries."""
+        if hasattr(obj, '__dict__'):
+            result = {}
+            for key, value in obj.__dict__.items():
+                if key == 'logger':  # Skip logger objects
+                    continue
+                result[key] = self._config_to_dict(value)
+            return result
+        elif isinstance(obj, list):
+            return [self._config_to_dict(item) for item in obj]
         else:
-            print("\nNo joint limits were updated (robot stayed within existing limits).")
+            return obj
 
-    def save_config(self):
-        """Save updated configuration to file."""
-        if not self.config_path:
-            return
+    def save_config(self, path: str):
+        # Convert config to dict for serialization
+        config_dict = self._config_to_dict(self.config)
 
-        try:
-            # Create backup of original file
-            backup_path = f"{self.config_path}.backup"
-            if Path(self.config_path).exists():
-                import shutil
-                shutil.copy2(self.config_path, backup_path)
-                print(f"Backup saved to: {backup_path}")
+        with open(path, 'w') as f:
+            if path.endswith('.yaml') or path.endswith('.yml'):
+                yaml.dump(config_dict, f, default_flow_style=False, sort_keys=True)
+            elif path.endswith('.json'):
+                json.dump(config_dict, f, indent=2, sort_keys=True)
+            else:
+                raise ValueError("Config file must be either YAML or JSON.")
+            print(f"Updated configuration saved to: {path}")
 
-            # Save updated config
-            with open(self.config_path, 'w') as f:
-                if self.config_path.endswith('.yaml') or self.config_path.endswith('.yml'):
-                    yaml.dump(self.config_data, f, default_flow_style=False, sort_keys=False)
-                elif self.config_path.endswith('.json'):
-                    json.dump(self.config_data, f, indent=2)
-
-            print(f"Updated configuration saved to: {self.config_path}")
-
-        except Exception as e:
-            logger.error(f"Failed to save config file: {e}")
 
     def print_config_formats(self):
         """Print the updated configuration in both JSON and YAML formats."""
@@ -406,14 +279,14 @@ class JointLimitsCalibrator:
         # Print JSON format
         print("\nJSON Format:")
         print("-" * 20)
-        print(json.dumps(self.config_data, indent=2))
+        print(json.dumps(self.config, indent=2))
 
         print("\n")
 
         # Print YAML format
         print("YAML Format:")
         print("-" * 20)
-        print(yaml.dump(self.config_data, default_flow_style=False, sort_keys=False))
+        print(yaml.dump(self.config, default_flow_style=False, sort_keys=False))
 
     def cleanup(self):
         """Clean up resources."""
@@ -421,43 +294,17 @@ class JointLimitsCalibrator:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Calibrate robot joint limits using teleoperation",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
-    )
-
-    parser.add_argument(
-        "--robot-port",
-        help="Serial port for the follower robot (e.g., /dev/ttyUSB0). If not provided, will use port from config file."
-    )
-
-    parser.add_argument(
-        "--teleop-port",
-        help="Serial port for the leader device (e.g., /dev/ttyUSB1). If not provided, will use port from config file."
-    )
-
-    parser.add_argument(
-        "--config",
-        help="Path to config file to update (JSON or YAML). If not provided, results are printed to console."
-    )
-
-    args = parser.parse_args()
+    config = parse(EnvironmentConfiguration)
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--config_path")
+    args = argparser.parse_args()
 
     try:
-        # Create calibrator
-        calibrator = JointLimitsCalibrator(
-            robot_port=args.robot_port,
-            teleop_port=args.teleop_port,
-            config_path=args.config
-        )
-
-        # Run calibration
+        calibrator = JointLimitsCalibrator(config)
         calibrator.run_calibration()
 
-        # Save config if path provided, otherwise print to console
-        if args.config:
-            calibrator.save_config()
+        if args.config_path:
+            calibrator.save_config(args.config_path)
         else:
             calibrator.print_config_formats()
 

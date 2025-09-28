@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from logging import Logger
 
 
-@dataclass(frozen=True)
+@dataclass
 class Joint:
     name: str
     min_limit: float
     max_limit: float
 
 
-@dataclass(frozen=True)
+@dataclass
 class RobotConfiguration:
     port: str
     joints: list[Joint] = None
@@ -26,13 +26,19 @@ class RobotConfiguration:
                 Joint('wrist_flex', -1.0, 1.0),
                 Joint('wrist_roll', -1.0, 1.0),
             ])
+        if self.gripper is None:
             object.__setattr__(self, 'gripper', Joint('gripper', -1.0, 1.0))
 
 @dataclass(frozen=True)
+class TeleopConfiguration:
+    port: str
+
+@dataclass
 class EnvironmentConfiguration:
     prompt: str
     cameras: dict[str, int]
     robot: RobotConfiguration
+    teleop: TeleopConfiguration
     server_ip: str
     server_port: int = 8000
     max_steps: int = 1000
