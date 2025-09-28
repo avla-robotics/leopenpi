@@ -44,9 +44,9 @@ class RobotEnvironment(Environment):
         if observation.size >= size:
             return observation[:size]
         padded = np.zeros(size)
-        padded[:observation.size] = observation.flatten()
+        padded[size-observation.size:] = observation.flatten()
         return padded
 
     @staticmethod
     def _trim(observation: np.ndarray) -> np.ndarray:
-        return observation[2:]
+        return observation[:-2]
