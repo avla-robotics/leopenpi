@@ -14,6 +14,7 @@ class RobotConfiguration:
     port: str
     joints: list[Joint] = None
     gripper: Joint = None
+    all_joints: list[Joint] = None
 
     def __post_init__(self):
         if self.joints is None:
@@ -28,6 +29,7 @@ class RobotConfiguration:
             ])
         if self.gripper is None:
             object.__setattr__(self, 'gripper', Joint('gripper', -1.0, 1.0))
+        self.all_joints = self.joints + [self.gripper]
 
 @dataclass(frozen=True)
 class TeleopConfiguration:
@@ -40,6 +42,7 @@ class EnvironmentConfiguration:
     robot: RobotConfiguration
     teleop: TeleopConfiguration
     server_ip: str
+    policy_type: str = "openpi"
     server_port: int = 8000
     max_steps: int = 1000
     log_level: str = "INFO"

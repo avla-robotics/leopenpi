@@ -148,7 +148,7 @@ class JointLimitsCalibrator:
 
     def _update_limits(self, observation: dict):
         """Update joint limits based on current observation."""
-        for joint_config in self.config.robot.joints + [self.config.robot.gripper]:
+        for joint_config in self.config.robot.all_joints:
             joint_key = f"{joint_config.name}.pos"
             if joint_key in observation:
                 current_pos = observation[joint_key]
@@ -183,18 +183,15 @@ class JointLimitsCalibrator:
 
             status_lines = ["Current Joint Positions and Limits:", "-" * 50]
 
-            # Combine joints and gripper into a single list
-            all_parts = self.config.robot.joints + [self.config.robot.gripper]
-
             # Collect status
-            for part in all_parts:
-                key = f"{part.name}.pos"
+            for joint in self.config.robot.all_joints:
+                key = f"{joint.name}.pos"
 
                 if key in self.current_observation:
                     current_pos = self.current_observation[key]
                     status_lines.append(
-                        f"{part.name:15}: {current_pos:8.4f} "
-                        f"(limits: {part.min_limit:8.4f} to {part.max_limit:8.4f})"
+                        f"{joint.name:15}: {current_pos:8.4f} "
+                        f"(limits: {joint.min_limit:8.4f} to {joint.max_limit:8.4f})"
                     )
             return "\n".join(status_lines)
 

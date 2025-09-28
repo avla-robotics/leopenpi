@@ -74,7 +74,7 @@ class RobotWrapper:
         ])
 
         goal_positions = {}
-        for i, joint in enumerate(self.config.joints + [self.config.gripper]):
+        for i, joint in enumerate(self.config.all_joints):
             current_pos = current_positions[i]
             action_val = action[i]
 
