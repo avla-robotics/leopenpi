@@ -30,7 +30,7 @@ class RobotWrapper:
             raise RuntimeError("Robot not connected")
 
         obs = self.robot.get_observation()
-        processed_obs = np.zeros(shape=(5,), dtype=np.float32)
+        processed_obs = np.zeros(shape=(len(joints),), dtype=np.float32)
         # Capture order from config
         for i, joint in enumerate(joints):
             joint_name = f"{joint.name}.pos"
