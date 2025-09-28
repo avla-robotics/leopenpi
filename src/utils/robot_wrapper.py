@@ -29,14 +29,13 @@ class RobotWrapper:
             raise RuntimeError("Robot not connected")
 
         obs = self.robot.get_observation()
-        processed_obs = np.zeros(shape=(6,), dtype=np.float32)
+        processed_obs = np.zeros(shape=(5,), dtype=np.float32)
         # Capture order from config
         for i, joint in enumerate(self.config.joints):
             joint_name = f"{joint.name}.pos"
             if joint_name not in obs:
                 raise ValueError(f"Could not find {joint_name} in robot observation from config value `{joint}`")
             processed_obs[i] = obs[joint_name]
-        print(processed_obs)
         return processed_obs
 
     def get_gripper_observation(self) -> np.ndarray:
@@ -70,12 +69,12 @@ class RobotWrapper:
             return
 
         current_positions = np.concatenate([
+            self.get_joint_observation(),
             self.get_gripper_observation(),
-            self.get_joint_observation()
         ])
 
         goal_positions = {}
-        for i, joint in enumerate([self.config.gripper] + self.config.joints):
+        for i, joint in enumerate(self.config.joints + [self.config.gripper]):
             current_pos = current_positions[i]
             action_val = action[i]
 
@@ -88,6 +87,14 @@ class RobotWrapper:
 
             # Clamp to joint limits
             clipped_value = np.clip(new_position, joint.min_limit, joint.max_limit)
+            if clipped_value != new_position:
+                print(
+                    f"Clipping on {joint.name}: "
+                    f"requested={new_position:.4f}, "
+                    f"clipped={clipped_value:.4f}, "
+                    f"min={joint.min_limit:.4f}, "
+                    f"max={joint.max_limit:.4f}"
+                )
             goal_positions[f"{joint.name}.pos"] = float(clipped_value)
 
         try:

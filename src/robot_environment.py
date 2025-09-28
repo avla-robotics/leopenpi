@@ -36,7 +36,7 @@ class RobotEnvironment(Environment):
         }
 
     def apply_action(self, action: dict) -> None:
-        act = self._trim(action["actions"], 6)
+        act = self._trim(action["actions"])
         self.robot.apply_action(act)
 
     @staticmethod
@@ -48,7 +48,5 @@ class RobotEnvironment(Environment):
         return padded
 
     @staticmethod
-    def _trim(observation: np.ndarray, size: int) -> np.ndarray:
-        if observation.size <= size:
-            return observation
-        return observation[:size]
+    def _trim(observation: np.ndarray) -> np.ndarray:
+        return observation[2:]
