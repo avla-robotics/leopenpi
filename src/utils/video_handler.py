@@ -1,6 +1,7 @@
 import time
 import cv2
 import numpy as np
+import os
 from openpi_client.image_tools import convert_to_uint8, resize_with_pad
 
 class VideoHandler:
@@ -8,7 +9,7 @@ class VideoHandler:
     Handles video capture operations for a robot environment.
     """
 
-    def __init__(self, camera_index: int = 0, image_height: int = 224, image_width: int = 224):
+    def __init__(self, camera_index: int = 0, image_height: int = 224, image_width: int = 224, debug: bool = False):
         """
         Initialize VideoHandler.
 
@@ -28,6 +29,10 @@ class VideoHandler:
         for _ in range(3):
             self.cap.read()
 
+        self.debug = debug
+        if self.debug:
+            os.makedirs("debug", exist_ok=True)
+
     def capture_frame(self) -> np.ndarray:
         """
         Capture a single frame on demand.
@@ -46,6 +51,12 @@ class VideoHandler:
         img_array = convert_to_uint8(frame_rgb)
         img_array = resize_with_pad(img_array, self.image_height, self.image_width)
         processed_frame = np.transpose(img_array, (2, 0, 1)).astype(np.uint8)
+
+        if self.debug:
+            debug_path = f"debug/{self.camera_index}.jpg"
+            debug_img = np.transpose(processed_frame, (1, 2, 0))
+            debug_img = cv2.cvtColor(debug_img, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(debug_path, debug_img)
 
         return processed_frame
 
