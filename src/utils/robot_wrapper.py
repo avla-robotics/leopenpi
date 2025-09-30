@@ -73,7 +73,7 @@ class RobotWrapper:
             action_val = action[i]
 
             total_range = joint.max_limit - joint.min_limit
-            delta_movement = action_val * total_range * 0.1
+            delta_movement = action_val * total_range * 0.25
             new_position = current_pos + delta_movement
             clipped_value = np.clip(new_position, joint.min_limit, joint.max_limit)
 
