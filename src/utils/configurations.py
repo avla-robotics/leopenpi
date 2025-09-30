@@ -48,6 +48,7 @@ class EnvironmentConfiguration:
     robot: RobotConfiguration
     teleop: TeleopConfiguration
     server_ip: str
+    start_home: bool = False
     policy_type: str = "openpi"
     server_port: int = 8000
     max_steps: int = 1000

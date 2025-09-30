@@ -11,6 +11,10 @@ from robot_environment import RobotEnvironment
 def main(config: EnvironmentConfiguration):
     robot = RobotWrapper(config.robot, config.logger)
     robot.connect()
+    if config.start_home:
+        robot.robot.send_action({'shoulder_pan.pos': 1.4735753183047682, 'shoulder_lift.pos': 36.69548921223146,
+         'elbow_flex.pos': -54.185264138257786, 'wrist_flex.pos': 97.51605995717344, 'wrist_roll.pos': 20.219244823386106,
+         'gripper.pos': -10.958854824587704})
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     if config.policy_type == "openpi":
