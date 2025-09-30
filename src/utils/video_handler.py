@@ -9,7 +9,7 @@ class VideoHandler:
     Handles video capture operations for a robot environment.
     """
 
-    def __init__(self, camera_index: int = 0, image_height: int = 224, image_width: int = 224, debug: bool = False):
+    def __init__(self, camera_index: int = 0, image_height: int = 224, image_width: int = 224, flipped = False, debug: bool = False):
         """
         Initialize VideoHandler.
 
@@ -21,6 +21,7 @@ class VideoHandler:
         self.camera_index = camera_index
         self.image_height = image_height
         self.image_width = image_width
+        self.flipped = flipped
         self.cap = cv2.VideoCapture(self.camera_index)
         if not self.cap.isOpened():
             raise RuntimeError(f"Cannot open camera {self.camera_index}")
@@ -46,6 +47,9 @@ class VideoHandler:
 
         # Convert BGR to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        if self.flipped:
+            frame_rgb = cv2.flip(frame_rgb, 1)
 
         # Apply openpi-client transformations and convert to (C, H, W)
         img_array = convert_to_uint8(frame_rgb)

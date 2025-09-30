@@ -1,6 +1,8 @@
 import numpy as np
 
 from openpi_client.runtime.environment import Environment
+from src import Camera
+
 # HACK: Make inputs work within package, and script. This should be refactored later.
 try:
     from utils.robot_wrapper import RobotWrapper
@@ -11,9 +13,9 @@ except ImportError:
 
 
 class RobotEnvironment(Environment):
-    def __init__(self, prompt: str, robot: RobotWrapper, cameras: dict[str, int]):
+    def __init__(self, prompt: str, robot: RobotWrapper, cameras: list[Camera]):
         self.robot = robot
-        self._video_handlers = {name: VideoHandler(index) for name, index in cameras.items()}
+        self._video_handlers = {camera.name: VideoHandler(camera_index=camera.index, flipped=camera.flipped) for camera in cameras}
         self._prompt = prompt
 
     @property

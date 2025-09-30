@@ -8,6 +8,12 @@ class Joint:
     min_limit: float
     max_limit: float
 
+@dataclass
+class Camera:
+    name: str
+    index: int
+    flipped: bool = False
+
 
 @dataclass
 class RobotConfiguration:
@@ -38,7 +44,7 @@ class TeleopConfiguration:
 @dataclass
 class EnvironmentConfiguration:
     prompt: str
-    cameras: dict[str, int]
+    cameras: list[Camera]
     robot: RobotConfiguration
     teleop: TeleopConfiguration
     server_ip: str
