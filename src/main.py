@@ -4,7 +4,7 @@ from openpi_client.action_chunk_broker import ActionChunkBroker
 from openpi_client.runtime.agents.policy_agent import PolicyAgent
 from openpi_client.runtime.runtime import Runtime
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-from utils import TeleopPolicy
+from mocks import TeleopPolicy
 from utils import EnvironmentConfiguration, LoggingSubscriber, RobotWrapper
 from robot_environment import RobotEnvironment
 
