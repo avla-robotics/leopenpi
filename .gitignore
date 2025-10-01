@@ -4,3 +4,4 @@ uv.lock
 .python-version
 **/config.yaml
 **/config.json
+**/__pycache__
