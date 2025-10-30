@@ -33,12 +33,12 @@ class RobotEnvironment(Environment):
         return {
             "prompt": self.prompt,
             "observation/gripper_position": self.robot.get_gripper_observation(),
-            "observation/joint_position": self._pad(self.robot.get_joint_observation(), 7),
+            "observation/state": self._pad(self.robot.get_joint_observation(), 7),
             **{f"observation/{name}": handler.capture_frame() for name, handler in self._video_handlers.items()},
         }
 
     def apply_action(self, action: dict) -> None:
-        act = self._trim(action["actions"])
+        act = self._trim(action["actions"]) * -1
         self.robot.apply_action(act)
 
     @staticmethod
@@ -51,4 +51,4 @@ class RobotEnvironment(Environment):
 
     @staticmethod
     def _trim(observation: np.ndarray) -> np.ndarray:
-        return observation[:-2]
+        return observation[:-1]
