@@ -43,7 +43,7 @@ class VideoHandler:
         """
         ret, frame = self.cap.read()
         if not ret:
-            raise RuntimeError("Failed to capture frame")
+            raise RuntimeError("Failed to capture frame for camera " + str(self.camera_index))
 
         # Convert BGR to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
