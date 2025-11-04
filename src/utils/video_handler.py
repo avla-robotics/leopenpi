@@ -63,16 +63,3 @@ class VideoHandler:
             cv2.imwrite(debug_path, debug_img)
 
         return processed_frame
-
-    def close(self):
-        """
-        Close the camera and cleanup resources.
-        """
-
-
-    def __del__(self):
-        """
-        Cleanup when object is destroyed.
-        """
-        self.cap.release()
-        self.cap = None
