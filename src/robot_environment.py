@@ -38,5 +38,6 @@ class RobotEnvironment(Environment):
         }
 
     def apply_action(self, action: dict) -> None:
-        act = action["actions"] * [1, 1, -1, 1, 1, -100]
+        # Larger gripper motions. You can tune this.
+        act = action["actions"] * [1, 1, 1, 1, 1, 10]
         self.robot.apply_action(act)
