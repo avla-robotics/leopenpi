@@ -12,9 +12,9 @@ def main(config: EnvironmentConfiguration):
     robot = RobotWrapper(config.robot, config.logger)
     robot.connect()
     if config.start_home:
-        robot.robot.send_action({'shoulder_pan.pos': 1.4735753183047682, 'shoulder_lift.pos': 36.69548921223146,
-         'elbow_flex.pos': -54.185264138257786, 'wrist_flex.pos': 97.51605995717344, 'wrist_roll.pos': 20.219244823386106,
-         'gripper.pos': -10.958854824587704})
+        robot.robot.send_action({'shoulder_pan.pos': -1.0922045402275287, 'shoulder_lift.pos': -3.715784836487443,
+                                 'elbow_flex.pos': 24.897385035204323, 'wrist_flex.pos': 38.88428504953293,
+                                 'wrist_roll.pos': 77.9066948032735, 'gripper.pos': 0.9564907387081087})
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     if config.policy_type == "openpi":
