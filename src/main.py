@@ -11,10 +11,17 @@ from robot_environment import RobotEnvironment
 def main(config: EnvironmentConfiguration):
     robot = RobotWrapper(config.robot, config.logger)
     robot.connect()
+
     if config.start_home:
-        robot.robot.send_action({'shoulder_pan.pos': -1.0922045402275287, 'shoulder_lift.pos': -3.715784836487443,
-                                 'elbow_flex.pos': 24.897385035204323, 'wrist_flex.pos': 38.88428504953293,
-                                 'wrist_roll.pos': 77.9066948032735, 'gripper.pos': 0.9564907387081087})
+        home_action = {}
+        for joint in config.robot.joints:
+            if joint.home is not None:
+                home_action[f'{joint.name}.pos'] = joint.home
+            else:
+                break
+        else:
+            # Only send the action if all joints have a home
+            robot.robot.send_action(home_action)
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     if config.policy_type == "openpi":

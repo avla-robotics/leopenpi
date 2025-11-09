@@ -7,6 +7,7 @@ class Joint:
     name: str
     min_limit: float
     max_limit: float
+    home: float | None = None
 
 @dataclass
 class Camera:
