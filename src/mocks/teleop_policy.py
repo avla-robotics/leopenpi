@@ -37,7 +37,7 @@ class TeleopPolicy(_base_policy.BasePolicy):
         """Get action from the teleoperator device."""
         telop_pos = self.teleop.get_action()
         robot_pos = self.robot.get_observation()
-        delta = np.zeros(shape=(7,), dtype=np.float32)
+        delta = np.zeros(shape=(6,), dtype=np.float32)
         for i, joint in enumerate(self.robot_config.all_joints):
             joint_name = f"{joint.name}.pos"
             diff = telop_pos[joint_name] - robot_pos[joint_name]
