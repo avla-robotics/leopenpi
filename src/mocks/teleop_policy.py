@@ -42,7 +42,8 @@ class TeleopPolicy(_base_policy.BasePolicy):
             joint_name = f"{joint.name}.pos"
             diff = telop_pos[joint_name] - robot_pos[joint_name]
             joint_range = joint.max_limit - joint.min_limit
-            delta[i] = diff / joint_range
+            # Offset the motion reduction that we do for openpi
+            delta[i] = 20 * diff / joint_range
 
         return {
             "actions": delta
