@@ -15,7 +15,7 @@ except ImportError:
 class RobotEnvironment(Environment):
     def __init__(self, prompt: str, robot: RobotWrapper, cameras: list[Camera]):
         self.robot = robot
-        self._video_handlers = {camera.name: VideoHandler(camera_index=camera.index, flipped=camera.flipped) for camera in cameras}
+        self._video_handlers = {camera.name: VideoHandler(camera=camera) for camera in cameras}
         self._prompt = prompt
 
     @property

@@ -4,24 +4,35 @@ import numpy as np
 import os
 from openpi_client.image_tools import convert_to_uint8, resize_with_pad
 
+from .configurations import Camera
+
+
 class VideoHandler:
     """
     Handles video capture operations for a robot environment.
     """
 
-    def __init__(self, camera_index: int = 0, image_height: int = 224, image_width: int = 224, flipped = False, debug: bool = False):
+    def __init__(self, camera: Camera, image_height: int = 224, image_width: int = 224, debug: bool = False):
         """
         Initialize VideoHandler.
 
         Args:
-            camera_index: Camera index (0 for default camera)
+            camera: Camera configuration object
             image_height: Target height for resized images
             image_width: Target width for resized images
+            debug: Whether to save debug images
         """
-        self.camera_index = camera_index
+        self.camera_index = camera.index
         self.image_height = image_height
         self.image_width = image_width
-        self.flipped = flipped
+        self.flipped = camera.flipped
+
+        self.crop_enabled = all(coord is not None for coord in [camera.minX, camera.maxX, camera.minY, camera.maxY])
+        self.minX = camera.minX if self.crop_enabled else None
+        self.maxX = camera.maxX if self.crop_enabled else None
+        self.minY = camera.minY if self.crop_enabled else None
+        self.maxY = camera.maxY if self.crop_enabled else None
+
         self.cap = cv2.VideoCapture(self.camera_index)
         if not self.cap.isOpened():
             raise RuntimeError(f"Cannot open camera {self.camera_index}")
@@ -50,6 +61,9 @@ class VideoHandler:
 
         if self.flipped:
             frame_rgb = cv2.flip(frame_rgb, 1)
+
+        if self.crop_enabled:
+            frame_rgb = frame_rgb[self.minY:self.maxY, self.minX:self.maxX]
 
         # Apply openpi-client transformations and convert to (C, H, W)
         img_array = convert_to_uint8(frame_rgb)

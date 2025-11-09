@@ -14,6 +14,10 @@ class Camera:
     name: str
     index: int
     flipped: bool = False
+    minX: int = None
+    maxX: int = None
+    minY: int = None
+    maxY: int = None
 
 
 @dataclass
