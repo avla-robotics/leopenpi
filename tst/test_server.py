@@ -1,6 +1,10 @@
 import os
+import sys
+from pathlib import Path
+
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
+sys.path.append(str(Path(__file__).parent.parent))
 from src import VideoHandler
 
 def test_server():
@@ -18,10 +22,10 @@ def test_server():
 
     # Create observation in the expected format
     obs = {
-        "observation/exterior_image_1_left": camera_image,
-        "observation/wrist_image_left": camera_image,
-        "observation/gripper_position": np.array([0.9]).astype(np.float32),
-        "observation/joint_position": np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.0, 0.0]).astype(np.float32),
+        "observation/image": camera_image,
+        "observation/wrist_image": camera_image,
+        "observation/state": np.array([0.9]).astype(np.float32),
+        "observation/gripper_position": np.array([0.1, 0.2, 0.3, 0.4, 0.5]).astype(np.float32),
         "prompt": "hello world"
     }
 
