@@ -261,6 +261,10 @@ class JointLimitsCalibrator:
         if 'robot' in config_dict:
             ordered_dict = {k: v for k, v in sorted(config_dict.items()) if k != 'robot'}
             ordered_dict['robot'] = config_dict['robot']
+
+            # This should be computed on the fly
+            del ordered_dict['robot']['all_joints']
+
             config_dict = ordered_dict
 
         with open(path, 'w') as f:
