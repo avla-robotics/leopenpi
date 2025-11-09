@@ -23,7 +23,7 @@ def main(config: EnvironmentConfiguration):
         policy = WebsocketClientPolicy(host=config.server_ip, port=config.server_port)
         policy = ActionChunkBroker(policy, action_horizon=10)
     elif config.policy_type == "teleop":
-        policy = TeleopPolicy(config.teleop.port, config.robot)
+        policy = TeleopPolicy(config.teleop, config.robot)
     else:
         raise Exception("Unrecognized policy type: ", config.policy_type)
 

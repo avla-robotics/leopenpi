@@ -83,13 +83,13 @@ class JointLimitsCalibrator:
             # Create robot configuration
             robot_config = SO101FollowerConfig(
                 port=self.robot_port,
-                id='follower'
+                id=self.config.robot.id
             )
 
             # Create teleoperator configuration
             teleop_config = SO101LeaderConfig(
                 port=self.teleop_port,
-                id='leader'
+                id=self.config.teleop.id
             )
 
             logger.info("Creating robot and teleoperator...")

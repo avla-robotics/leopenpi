@@ -6,7 +6,7 @@ from typing_extensions import override
 from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderConfig
 from lerobot.teleoperators import make_teleoperator_from_config
 from lerobot.robots import make_robot_from_config
-from utils import RobotConfiguration
+from utils import RobotConfiguration, TeleopConfiguration
 from openpi_client import base_policy as _base_policy
 
 
@@ -17,14 +17,14 @@ class TeleopPolicy(_base_policy.BasePolicy):
     for the robot, bypassing the need for a remote policy server.
     """
 
-    def __init__(self, teleop_port: str, robot: RobotConfiguration):
+    def __init__(self, teleop: TeleopConfiguration, robot: RobotConfiguration):
         teleop_config = SO101LeaderConfig(
-            port=teleop_port,
-            id='leader'
+            port=teleop.port,
+            id=teleop.id
         )
         robot_config = SO101FollowerConfig(
             port=robot.port,
-            id='follower'
+            id=robot.id
         )
         self.teleop = make_teleoperator_from_config(teleop_config)
         self.robot = make_robot_from_config(robot_config)

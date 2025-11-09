@@ -8,7 +8,7 @@ class RobotWrapper:
     def __init__(self, config: RobotConfiguration, logger: logging.Logger = logging.Logger(__name__)):
         self.config = config
         self.logger = logger
-        robot_config = SO101FollowerConfig(port=self.config.port)
+        robot_config = SO101FollowerConfig(port=self.config.port, id=self.config.id)
 
         self.robot = SO101Follower(robot_config)
         self.is_connected = False

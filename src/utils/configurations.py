@@ -18,6 +18,7 @@ class Camera:
 @dataclass
 class RobotConfiguration:
     port: str
+    id: str = 'follower'
     joints: list[Joint] = None
     gripper: Joint = None
     all_joints: list[Joint] = None
@@ -40,6 +41,7 @@ class RobotConfiguration:
 @dataclass(frozen=True)
 class TeleopConfiguration:
     port: str
+    id: str = 'leader'
 
 @dataclass
 class EnvironmentConfiguration:
