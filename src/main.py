@@ -18,6 +18,8 @@ def main(config: EnvironmentConfiguration):
 
     environment = RobotEnvironment(config.prompt, robot, config.cameras)
     if config.policy_type == "openpi":
+        if config.server_ip == None:
+            raise Exception("IP address is required for openpi. Set `server_ip: x.x.x.x` in your config file.")
         policy = WebsocketClientPolicy(host=config.server_ip, port=config.server_port)
         policy = ActionChunkBroker(policy, action_horizon=10)
     elif config.policy_type == "teleop":

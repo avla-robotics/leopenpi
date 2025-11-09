@@ -47,7 +47,7 @@ class EnvironmentConfiguration:
     cameras: list[Camera]
     robot: RobotConfiguration
     teleop: TeleopConfiguration
-    server_ip: str
+    server_ip: str | None = None
     start_home: bool = False
     policy_type: str = "openpi"
     server_port: int = 8000
