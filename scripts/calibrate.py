@@ -257,11 +257,17 @@ class JointLimitsCalibrator:
         # Convert config to dict for serialization
         config_dict = self._config_to_dict(self.config)
 
+        # Reorder keys to put 'robot' last
+        if 'robot' in config_dict:
+            ordered_dict = {k: v for k, v in sorted(config_dict.items()) if k != 'robot'}
+            ordered_dict['robot'] = config_dict['robot']
+            config_dict = ordered_dict
+
         with open(path, 'w') as f:
             if path.endswith('.yaml') or path.endswith('.yml'):
-                yaml.dump(config_dict, f, default_flow_style=False, sort_keys=True)
+                yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)
             elif path.endswith('.json'):
-                json.dump(config_dict, f, indent=2, sort_keys=True)
+                json.dump(config_dict, f, indent=2)
             else:
                 raise ValueError("Config file must be either YAML or JSON.")
             print(f"Updated configuration saved to: {path}")
