@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
 sys.path.append(str(Path(__file__).parent.parent))
-from src import VideoHandler
+from src import VideoHandler, Camera
 
 def test_server():
     # Connect to server on port 8000
@@ -15,8 +15,9 @@ def test_server():
     metadata = policy.get_server_metadata()
     print(f"Connected to server. Metadata: {metadata}")
 
-    # Initialize video handler
-    video_handler = VideoHandler(camera_index=0, image_height=224, image_width=224)
+    # Initialize video handler with a Camera object
+    camera = Camera(name="test", index=0)
+    video_handler = VideoHandler(camera=camera, image_height=224, image_width=224)
 
     camera_image = video_handler.capture_frame()
 
