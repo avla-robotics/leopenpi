@@ -27,15 +27,13 @@ import yaml
 import json
 import logging
 
-from pathlib import Path
 from draccus import parse
 from lerobot.robots.so101_follower.config_so101_follower import SO101FollowerConfig
 from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderConfig
 from lerobot.robots import make_robot_from_config
 from lerobot.teleoperators import make_teleoperator_from_config
 
-sys.path.append(str(Path(__file__).parent.parent))
-from src import EnvironmentConfiguration
+from so101_pi import EnvironmentConfiguration
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

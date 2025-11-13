@@ -1,15 +1,7 @@
-import numpy as np
-
 from openpi_client.runtime.environment import Environment
-from src import Camera
-
-# HACK: Make inputs work within package, and script. This should be refactored later.
-try:
-    from utils.robot_wrapper import RobotWrapper
-    from utils.video_handler import VideoHandler
-except ImportError:
-    from src.utils.robot_wrapper import RobotWrapper
-    from src.utils.video_handler import VideoHandler
+from so101_pi import Camera
+from so101_pi.utils.robot_wrapper import RobotWrapper
+from so101_pi.utils.video_handler import VideoHandler
 
 
 class RobotEnvironment(Environment):

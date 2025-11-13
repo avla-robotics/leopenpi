@@ -1,11 +1,9 @@
 import os
-import sys
 from pathlib import Path
 
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-sys.path.append(str(Path(__file__).parent.parent))
-from src import VideoHandler, Camera
+from so101_pi import VideoHandler, Camera
 
 def test_server():
     # Connect to server on port 8000

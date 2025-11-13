@@ -32,11 +32,10 @@ from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderCo
 from lerobot.robots import make_robot_from_config
 from lerobot.teleoperators import make_teleoperator_from_config
 
-# Add project root to path so we can import from src
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from so101_pi import EnvironmentConfiguration
 
-from src import EnvironmentConfiguration
+# Keep project_root for config file resolution
+project_root = Path(__file__).parent.parent
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

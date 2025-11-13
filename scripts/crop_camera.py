@@ -20,12 +20,10 @@ import sys
 import yaml
 import cv2
 import logging
-from pathlib import Path
 
 from draccus import parse
 
-sys.path.append(str(Path(__file__).parent.parent))
-from src import EnvironmentConfiguration
+from so101_pi import EnvironmentConfiguration
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
