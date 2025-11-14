@@ -30,6 +30,6 @@ class RobotEnvironment(Environment):
         }
 
     def apply_action(self, action: dict) -> None:
-        # Larger gripper motions. You can tune this.
-        act = action["actions"] * [1, 1, 1, 1, 1, 3]
+        # Only take the first 6 values
+        act = action["actions"][:6]
         self.robot.apply_action(act)
