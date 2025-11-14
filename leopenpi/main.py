@@ -4,9 +4,9 @@ from openpi_client.action_chunk_broker import ActionChunkBroker
 from openpi_client.runtime.agents.policy_agent import PolicyAgent
 from openpi_client.runtime.runtime import Runtime
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-from so101_pi.mocks import TeleopPolicy
-from so101_pi.utils import EnvironmentConfiguration, LoggingSubscriber, RobotWrapper
-from so101_pi.robot_environment import RobotEnvironment
+from leopenpi.mocks import TeleopPolicy
+from leopenpi.utils import EnvironmentConfiguration, LoggingSubscriber, RobotWrapper
+from leopenpi.robot_environment import RobotEnvironment
 
 def main(config: EnvironmentConfiguration):
     robot = RobotWrapper(config.robot, config.logger)

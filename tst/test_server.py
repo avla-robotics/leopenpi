@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 from openpi_client.websocket_client_policy import WebsocketClientPolicy
-from so101_pi import VideoHandler, Camera
+from leopenpi import VideoHandler, Camera
 
 def test_server():
     # Connect to server on port 8000

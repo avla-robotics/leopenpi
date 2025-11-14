@@ -33,7 +33,7 @@ from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderCo
 from lerobot.robots import make_robot_from_config
 from lerobot.teleoperators import make_teleoperator_from_config
 
-from so101_pi import EnvironmentConfiguration
+from leopenpi import EnvironmentConfiguration
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

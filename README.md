@@ -1,10 +1,10 @@
-# SO101-PI
+# LeOpenPI
 
 A Python package for controlling the SO-101 robot arm through OpenPI client runtime with video observation support.
 
 ## Overview
 
-SO101-PI provides a bridge between the SO-101 robot hardware and the OpenPI client runtime system. It enables remote control of the robot arm through WebSocket connections while capturing video observations from multiple cameras.
+LeOpenPI provides a bridge between the SO-101 robot hardware and the OpenPI client runtime system. It enables remote control of the robot arm through WebSocket connections while capturing video observations from multiple cameras.
 
 ## Features
 
@@ -41,8 +41,8 @@ uv pip install -e .
 
 ```python
 from draccus import parse
-from so101_pi.main import main
-from so101_pi.utils.configurations import EnvironmentConfiguration
+from leopenpi.main import main
+from leopenpi.utils.configurations import EnvironmentConfiguration
 
 # Parse configuration from command line
 config = parse(EnvironmentConfiguration)
@@ -106,7 +106,7 @@ Default joints:
 ### Project Structure
 
 ```
-so101_pi/
+leopenpi/
 ├── main.py                 # Entry point
 ├── robot_environment.py    # Environment implementation
 └── utils/
@@ -120,10 +120,10 @@ so101_pi/
 
 ```bash
 # Navigate to project directory
-cd so101-pi
+cd leopenpi
 
 # Run with configuration
-python -m so101_pi.main --prompt "Pick up the red block" \
+python -m leopenpi.main --prompt "Pick up the red block" \
                         --cameras '{"front": 0}' \
                         --robot.port "/dev/ttyUSB0" \
                         --server_ip "localhost"

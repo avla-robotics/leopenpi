@@ -23,7 +23,7 @@ import logging
 
 from draccus import parse
 
-from so101_pi import EnvironmentConfiguration
+from leopenpi import EnvironmentConfiguration
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

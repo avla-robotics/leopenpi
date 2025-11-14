@@ -1,7 +1,7 @@
 from openpi_client.runtime.environment import Environment
-from so101_pi import Camera
-from so101_pi.utils.robot_wrapper import RobotWrapper
-from so101_pi.utils.video_handler import VideoHandler
+from leopenpi import Camera
+from leopenpi.utils.robot_wrapper import RobotWrapper
+from leopenpi.utils.video_handler import VideoHandler
 
 
 class RobotEnvironment(Environment):

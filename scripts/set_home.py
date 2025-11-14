@@ -32,7 +32,7 @@ from lerobot.teleoperators.so101_leader.config_so101_leader import SO101LeaderCo
 from lerobot.robots import make_robot_from_config
 from lerobot.teleoperators import make_teleoperator_from_config
 
-from so101_pi import EnvironmentConfiguration
+from leopenpi import EnvironmentConfiguration
 
 # Keep project_root for config file resolution
 project_root = Path(__file__).parent.parent
