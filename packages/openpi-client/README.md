@@ -1,0 +1,2 @@
+# openpi-client
+This is the [openpi client library](https://github.com/Physical-Intelligence/openpi/tree/main/packages/openpi-client) from Physical Intelligence. It is part of the openpi repo, and handles things like flow control, and the websocket protocol. 
