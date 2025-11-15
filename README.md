@@ -1,6 +1,6 @@
 # LeOpenPI
 
-A Python package for controlling the SO-101 robot arm through OpenPI client runtime with video observation support.
+A Python client for controlling the Lerobot SO-101 robot arm through an OpenPI server.
 
 ## Overview
 
@@ -23,132 +23,90 @@ LeOpenPI provides a bridge between the SO-101 robot hardware and the OpenPI clie
 ## Installation
 
 ```bash
-# Install dependencies and setup development environment
-uv sync
-
-# For production installation
 uv pip install -e .
 ```
 
-## Dependencies
-
-- `openpi-client`: OpenPI runtime client
-- `opencv-python`: Computer vision and video capture
-
-## Usage
-
-### Basic Usage
-
-```python
-from draccus import parse
-from leopenpi.main import main
-from leopenpi.utils.configurations import EnvironmentConfiguration
-
-# Parse configuration from command line
-config = parse(EnvironmentConfiguration)
-main(config)
-```
-
-### Configuration
-
-The system uses `EnvironmentConfiguration` for setup:
-
-```python
-@dataclass
-class EnvironmentConfiguration:
-    prompt: str                    # Task prompt/description
-    cameras: dict[str, int]        # Camera mapping (name -> device_id)
-    robot: RobotConfiguration      # Robot hardware config
-    server_ip: str                 # WebSocket server IP
-    server_port: int = 8000        # WebSocket server port
-    max_steps: int = 1000          # Maximum episode steps
-    log_level: str = "INFO"        # Logging level
-```
 
 ### Robot Configuration
 
-The SO-101 robot configuration includes joint specifications:
-
-```python
-@dataclass
-class RobotConfiguration:
-    port: str                      # Serial port for robot communication
-    joints: list[Joint]            # Joint configuration (auto-configured)
-```
-
-Default joints:
-- `shoulder_pan`: Shoulder rotation (-1.0 to 1.0)
-- `shoulder_lift`: Shoulder elevation (-1.0 to 1.0)
-- `elbow_flex`: Elbow joint (-1.0 to 1.0)
-- `wrist_flex`: Wrist pitch (-1.0 to 1.0)
-- `wrist_roll`: Wrist rotation (-1.0 to 1.0)
-- `gripper`: Gripper control (0.0 open to 1.0 closed)
-
-## Architecture
-
-### Core Components
-
-- **`RobotWrapper`**: Hardware interface for SO-101 robot
-- **`RobotEnvironment`**: OpenPI environment implementation
-- **`VideoHandler`**: Camera capture and frame processing
-- **`LoggingSubscriber`**: Runtime event logging
-
-### Data Flow
-
-1. **Initialization**: Robot connects and cameras initialize
-2. **Observation**: System captures camera frames and robot state
-3. **Policy**: WebSocket client receives observations and returns actions
-4. **Execution**: Actions are sent to robot hardware
-5. **Logging**: All events are logged for debugging and analysis
-
-## Development
-
-### Project Structure
-
-```
-leopenpi/
-├── main.py                 # Entry point
-├── robot_environment.py    # Environment implementation
-└── utils/
-    ├── configurations.py   # Configuration classes
-    ├── robot_wrapper.py    # Robot hardware interface
-    ├── video_handler.py    # Camera capture
-    └── logging_subscriber.py # Event logging
-```
-
-### Running from Source
-
+The client uses a configuration to describe the workspace. To generate a configuration, run
 ```bash
-# Navigate to project directory
-cd leopenpi
-
-# Run with configuration
-python -m leopenpi.main --prompt "Pick up the red block" \
-                        --cameras '{"front": 0}' \
-                        --robot.port "/dev/ttyUSB0" \
-                        --server_ip "localhost"
+uv run scripts/setup.py
+````
+This will produce a configuration file like this:
+```yaml
+prompt: Some prompt
+teleop:
+  port: /dev/tty.usbmodemXXXXX
+  id: leader
+server_ip: 0.0.0.0
+start_home: true
+policy_type: openpi OR teleop
+server_port: 8000
+max_steps: 1000
+log_level: INFO
+robot:
+  port: /dev/tty.usbmodemXXXXX
+  id: follower
+  joints:
+  - name: shoulder_pan
+    min_limit: -100
+    max_limit: 100
+    home: 0
+  - name: shoulder_lift
+    min_limit: -100
+    max_limit: 100
+    home: 0
+  - name: elbow_flex
+    min_limit: -100
+    max_limit: 100
+    home: 0
+  - name: wrist_flex
+    min_limit: -100
+    max_limit: 100
+    home: 0
+  - name: wrist_roll
+    min_limit: -100
+    max_limit: 100
+    home: 0
+  gripper:
+    name: gripper
+    min_limit: -100
+    max_limit: 100
+    home: 0
+cameras:
+- name: image
+  index: 1
+  flipped: false
+  minX: 0
+  maxX: 1000
+  minY: 0
+  maxY: 1000
 ```
 
-## Hardware Setup
+## Running
 
-1. Connect SO-101 robot to computer via USB
-2. Connect cameras to USB ports
-3. Ensure robot is calibrated and operational
-4. Verify camera device IDs with `ls /dev/video*`
-
-## Troubleshooting
+To inference from an Openpi server, run:
+```bash
+uv run leopenpi/main.py --config_path=config.yaml
+```
+You can set `policy_type` in your config to `teleop` to run a mock policy using a leader arm.
 
 ### Common Issues
 
-- **Robot connection fails**: Check USB cable and port permissions
-- **Camera not found**: Verify camera device ID and USB connection
-- **WebSocket connection error**: Ensure server is running and accessible
-- **Permission denied**: May need `sudo` for serial port access
+- **Camera not found**: Verify camera device ID and USB connection. It may help to use lerobot's `find-cameras` util.
+- **Failed to read from camera**: You might be overloading your USB bus. If you have multiple cameras, connect them to different busses.
+- **Client immediately hangs**: It is likely waiting for a web socket response. Check your server.
 
 ### Logging
 
 Enable debug logging for detailed troubleshooting:
 
 ```python
-config.log_level = "DEBUG"
+log_level = "DEBUG"
 ```
+## Contributing
+
+We welcome contributions! If you find a bug, please create a Github issue. If you know the solution, feel free to submit a PR and we'll review it within 2 days.
+
+If you'd like to contact the maintainers, email `founders@avla.ai`.
