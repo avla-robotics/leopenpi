@@ -92,6 +92,18 @@ uv run leopenpi/main.py --config_path=config.yaml
 ```
 You can set `policy_type` in your config to `teleop` to run a mock policy using a leader arm.
 
+To set up an Openpi server, follow the instructions from the [openpi repo](https://github.com/Physical-Intelligence/openpi):
+
+### Notes
+- Openpi does not provide a server side policy for lerobot
+  - The simplest thing to do is modify the [libero policy](https://github.com/Physical-Intelligence/openpi/blob/175f89c31d1b2631a8ff3b678768f17489c5ead4/src/openpi/policies/libero_policy.py#L100) to output 6 joints instead of 7. This library will automatically only use the first 6 joints, even if 7 are sent. 
+  - If you train your own policy, you may want to create your own config to best handle your own inputs
+- Running OpenPi requires a Nvidia GPU. Best results come from cloud hosting.
+  - During testing, we've been using [Digital Ocean](https://m.do.co/c/1fc674ab871a)*, which offers antiquate servers for under $2/hr
+  - We are working on building our own cheaper and easier to use server solution. If you'd like to beta test it with some free credits, send an email to `founders@avla.ai`.
+
+ *referral link
+
 ### Common Issues
 
 - **Camera not found**: Verify camera device ID and USB connection. It may help to use lerobot's `find-cameras` util.
