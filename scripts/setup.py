@@ -248,9 +248,9 @@ def main():
     print("=" * 60)
     print("✓ Setup Complete!")
     print("=" * 60)
-    print(f"Your robot configuration has been saved to: {config_path}")
+    print(f"Your robot configuration has been saved to: {config_path}. Now run:")
     print()
-    print("You can now use this configuration to run your robot.")
+    print(f"uv run leopenpi/main.py --config_path={config_path}")
     print("=" * 60)
 
 
