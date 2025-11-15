@@ -7,6 +7,7 @@ on camera images and saving the crop coordinates to the configuration file.
 
 Usage:
     python crop_camera.py --config config.yaml
+    python crop_camera.py --config config.json
     crop_camera --config config.yaml  # If installed as package
 
 The script will:
@@ -18,6 +19,7 @@ The script will:
 import argparse
 import sys
 import yaml
+import json
 import cv2
 import logging
 
@@ -307,8 +309,10 @@ class CameraCropCalibrator:
         with open(path, 'w') as f:
             if path.endswith('.yaml') or path.endswith('.yml'):
                 yaml.dump(ordered_dict, f, default_flow_style=False, sort_keys=False)
+            elif path.endswith('.json'):
+                json.dump(ordered_dict, f, indent=2)
             else:
-                raise ValueError("Config file must be YAML.")
+                raise ValueError("Config file must be YAML or JSON.")
             logger.info(f"Updated configuration saved to: {path}")
 
 

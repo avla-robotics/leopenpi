@@ -9,6 +9,7 @@ This script allows you to:
 Usage:
     python set_home.py --robot.port /dev/ttyUSB0 --teleop.port /dev/ttyUSB1
     python set_home.py --config config.yaml  # Uses ports from config file
+    python set_home.py --config config.json  # Also supports JSON
     set_home --config config.yaml  # If installed as package
 
 The script will:
@@ -23,6 +24,7 @@ import signal
 import select
 import sys
 import yaml
+import json
 import logging
 from pathlib import Path
 from draccus import parse
@@ -237,7 +239,10 @@ class HomePositionSetter:
             # Read the existing config
             config_file = Path(config_path)
             with open(config_file, 'r') as f:
-                config_data = yaml.safe_load(f)
+                if config_file.suffix.lower() == '.json':
+                    config_data = json.load(f)
+                else:
+                    config_data = yaml.safe_load(f)
 
             # Update home positions for joints
             for joint_config in config_data['robot']['joints']:
@@ -256,7 +261,10 @@ class HomePositionSetter:
 
             # Write back to config file
             with open(config_file, 'w') as f:
-                yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
+                if config_file.suffix.lower() == '.json':
+                    json.dump(config_data, f, indent=2)
+                else:
+                    yaml.dump(config_data, f, default_flow_style=False, sort_keys=False)
 
             print(f"\nSuccessfully updated home positions in {config_path}")
 
